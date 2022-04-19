@@ -77,7 +77,7 @@ func DialContext(ctx context.Context, target string) (ClientConn, error) {
 }
 
 func DialTLSContext(ctx context.Context, target string, tlsClientConfig *tls.Config) (ClientConn, error) {
-	tlsContext:=&tlsContext{cfg: tlsClientConfig}
+	tlsContext := &tlsContext{cfg: tlsClientConfig}
 	cc := &clientConn{DialContext: tlsContext.dialTLS}
 	cc.addr, cc.userInfo = parseTarget(target)
 	return cc, cc.dial(ctx)
@@ -96,11 +96,11 @@ func dial(ctx context.Context, network, addr string) (net.Conn, error) {
 	return net.DialTimeout(network, addr, deadline.Sub(time.Now()))
 }
 
-type tlsContext struct{
+type tlsContext struct {
 	cfg *tls.Config
 }
 
-func (t *tlsContext)dialTLS(ctx context.Context, network, addr string) (net.Conn, error) {
+func (t *tlsContext) dialTLS(ctx context.Context, network, addr string) (net.Conn, error) {
 	_, _, err := net.SplitHostPort(addr)
 	if strings.Contains(err.Error(), "missing port in address") {
 		addr += ":8729"
@@ -111,7 +111,7 @@ func (t *tlsContext)dialTLS(ctx context.Context, network, addr string) (net.Conn
 	if !ok {
 		conn, err = net.Dial(network, addr)
 	} else {
-		conn, err= net.DialTimeout(network, addr, deadline.Sub(time.Now()))
+		conn, err = net.DialTimeout(network, addr, deadline.Sub(time.Now()))
 	}
 
 	if err != nil {
@@ -191,8 +191,12 @@ func (s *streamOutput) Recv() (Re, error) {
 		return nil, err
 	}
 	switch r.Type {
-	case replyTrap, replyFatal:
-		return nil, fmt.Errorf("ReplyError: %v", r.Sentence)
+	case replyTrap:
+		return nil, fmt.Errorf("ReplyError Sentence: %v", r.Type, r.Sentence)
+	case replyFatal:
+		err := fmt.Errorf("ReplyFatal Sentence: %v", r.Sentence)
+		s.ts.tsm.closeWithError(err)
+		return nil, err
 	case replyDone:
 		return nil, io.EOF
 	}
