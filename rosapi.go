@@ -68,7 +68,9 @@ type ROSAPI interface {
 	ROSClient
 	Add(ctx context.Context, resource string, attrs Attrs) error
 	Set(ctx context.Context, resource string, attrs Attrs) error
+	SetByID(ctx context.Context, resource, id string, attrs Attrs) error
 	Print(ctx context.Context, resource string, wheres ...string) (Result, error)
+	Remove(ctx context.Context, resource string, id string) error 
 }
 
 type ROSClient interface {
@@ -91,8 +93,13 @@ func (r *baseAPI) Add(ctx context.Context, resource string, attrs Attrs) error {
 	return err
 }
 
+func (r *baseAPI) SetByID(ctx context.Context, resource, id string, attrs Attrs) error {
+	attrs[IDAttrName] = id
+	return r.Set(ctx, resource, attrs)
+}
+
 func (r *baseAPI) Set(ctx context.Context, resource string, attrs Attrs) error {
-	args := make([]string, 0, len(attrs)+1)
+	args := make([]string, 0, len(attrs))
 	for k, v := range attrs {
 		args = append(args, Attribute(k, v))
 	}
@@ -105,6 +112,12 @@ func (r *baseAPI) Print(ctx context.Context, resource string, wheres ...string) 
 	resource = path.Join(resource, "print")
 	result, err := r.Exec(ctx, resource, wheres...)
 	return result, err
+}
+
+func (r *baseAPI) Remove(ctx context.Context, resource string, id string) error {
+	resource = path.Join(resource, "remove")
+	_, err := r.Exec(ctx, resource, Attribute(IDAttrName, id))
+	return err
 }
 
 type rosAPI struct {

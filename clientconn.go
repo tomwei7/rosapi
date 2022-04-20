@@ -192,7 +192,7 @@ func (s *streamOutput) Recv() (Re, error) {
 	}
 	switch r.Type {
 	case replyTrap:
-		return nil, fmt.Errorf("ReplyError Sentence: %v", r.Type, r.Sentence)
+		return nil, fmt.Errorf("ReplyError Type: %s, Sentence: %v", r.Type, r.Sentence)
 	case replyFatal:
 		err := fmt.Errorf("ReplyFatal Sentence: %v", r.Sentence)
 		s.ts.tsm.closeWithError(err)
