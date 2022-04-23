@@ -249,6 +249,9 @@ func (c *clientConn) loginNotLock(ctx context.Context) error {
 		return err
 	}
 
+	// clear conn deadline
+	c.conn.SetDeadline(time.Time{})
+
 	switch reply.Type {
 	case replyDone:
 		return nil
